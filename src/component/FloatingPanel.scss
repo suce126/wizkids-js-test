@@ -1,0 +1,20 @@
+.FloatingPanel{
+border: 1px solid orangered;
+min-height:40px;
+min-width: 50px;
+background-color: rgba(0,0,0,.3);
+color:#fff;
+position: absolute;
+visibility: hidden;
+ul{
+    list-style: none;
+    margin: 0;
+    padding: 10px;
+    li{
+        &:hover{
+            background-color: #fff;
+            color: orangered;
+        }
+    }
+}
+}
