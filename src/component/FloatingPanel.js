@@ -17,7 +17,7 @@ export default class FloatingPanel extends Component {
           {suggestions.map((s, i) => {
             if (suggestions[i]) {
               return <li key={i} onClick={()=>this.props.updateText(s.toLowerCase())} >
-              {s.toUpperCase()}
+              {s.toLowerCase()}
             </li>
             } else return null;
           })}
