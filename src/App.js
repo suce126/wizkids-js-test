@@ -1,8 +1,8 @@
 import React, { Component } from "react";
-import logo from "./logo.svg";
+import logo from "./logo.png";
 import "./App.css";
-import $ from "jquery";
 import getCaretCoordinates from "textarea-caret";
+import FloatingPanel from "./component/FloatingPanel";
 
 var myHeaders = new Headers();
 myHeaders.set(
@@ -15,11 +15,11 @@ class App extends Component {
     super(props);
     this.state = {
       locale: "en-GB",
-      text: ""
-      // x: 0,
-      // y: 0,
-      // show: false,
-     //suggestions: []
+      text: "",
+      x: 0,
+      y: 0,
+      show: false,
+     suggestions: []
     };
     this.textarea = React.createRef();
   }
@@ -33,57 +33,50 @@ class App extends Component {
       headers: myHeaders
     })
       .then(res => res.json())
-      .then(data => {
-        let output = "";
+      .then(data => { 
+        const suggestions = [];
         for (let index = 0; index < 10; index++) {
-          const element = data[index];
-          if (element !== undefined) {
-            output += `
-            <ul id='select'>
-              <li id='selectText'>${element}</li>
-            </ul>`;
-          }
+           suggestions[index] = data[index];
+         
         }
-        document.getElementById("output").innerHTML = output;
+        let caret = getCaretCoordinates(
+          this.textarea.current,
+          this.textarea.current.selectionEnd
+        );
+        this.setState({
+          ...this.state,
+          
+          x: caret.left,
+          y: caret.top,
+          show: suggestions.length > 0,
+          suggestions
+        });
       });
   };
-
-  getWordsFromTextArea = () => {
-    let result = $("textarea").val();
-    this.setState({
-      text: result
-    });
-    this.getWordPredictions();
-
-    
+  
+  takeInput = e => {
+    this.setState({ text: e.target.value });
   };
 
-  // aaa = () => {
-  //   let result1 = $('#selectText').val();
-  //   this.setState({
-  //     text: result1
-  //   });
-  //   this.getWordPredictions();
-  // }
+  updateText = element => {
+    const words = this.state.text.split(" ");
+    let goodWords = "";
+    for (let i = 0; i < words.length - 1; i++) {
+      goodWords += words[i] + " ";
+    }
 
-  // bbbb = () => {
-  //   this.getWordsFromTextArea();
-  //   this.aaa();
-  // }
+    this.setState({
+      ...this.state,
+      text: goodWords + element,
+      show: false
+    });
+  };
 
-  // updateText = element => {
-  //   const words = this.state.text.split(" ");
-  //   let goodWords = "";
-  //   for (let i = 0; i < words.length - 1; i++) {
-  //     goodWords += words[i] + " ";
-  //   }
+  countWords = () => {
+    let textCount = this.state.text.length;  
+    document.getElementById("div1").innerHTML = textCount;  
+  }
 
-  //   this.setState({
-  //     ...this.state,
-  //     text: goodWords + element,
-  //     show: false
-  //   });
-  // };
 
   componentDidUpdate(prevProps, prevState) {
     if (
@@ -93,26 +86,39 @@ class App extends Component {
       this.getWordPredictions();
       this.textarea.current.selectionEnd = this.textarea.current.value.length;
       this.textarea.current.focus();
+    } else if (
+      prevState.text !== this.state.text &&
+      this.state.text[this.state.text.length - 1] === " "
+    ) {
+      this.setState({ ...this.state, show: false });
     }
   }
-
+  
   render() {
+    const {text,x,y,show,suggestions} = this.state;
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
         </header>
-
+      <div style={{position:'relative'}}>
         <textarea
-          id="textarea"
-          onChange={this.getWordsFromTextArea}
-          updateText={this.updateText}
+          onChange={this.takeInput}
+          value={text}
+          placeholder='Please enter your text here... :)'
+          onKeyUp={this.countWords}
           ref={this.textarea}
-
-        />
-
-        <div id="output" />
+        />    
+        <FloatingPanel 
+        x={x}
+        y={y + 40}
+        show={show}
+        suggestions={suggestions}
+        updateText={this.updateText}/>
       </div>
+      <div id="div1"></div>
+      </div>
+      
     );
   }
 }
